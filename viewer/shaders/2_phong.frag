@@ -1,5 +1,6 @@
 #version 410
-#define M_PI 3.1415926535897932384626433832795
+
+float PI = 3.14159265358979323846264338327950288419716939937510;
 
 uniform float lightIntensity;
 uniform bool blinnPhong;
@@ -15,92 +16,67 @@ in vec4 lightSpace;
 
 out vec4 fragColor;
 
-float alpha = (200 - shininess) / 200;
-
-float G(float cos_theta)
-{
-     float cos_theta_carre = pow(cos_theta, 2.);
-     float tan_theta_carre = (1 - cos_theta_carre) / cos_theta_carre;
-     return 2. / (1. + pow(1 + pow(alpha, 2) * tan_theta_carre, 0.5));
+float F(float cosinus)
+{    
+     float c_i = 1;
+     float c_i_2 = (pow(eta, 2) + pow(cosinus, 2) - 1);
+     if (c_i_2 >= 0) {c_i = pow(c_i_2, 1/2);}
+     float F_s = pow(length((cosinus - c_i)/(cosinus + c_i)), 2);
+     float F_p = pow(length((pow(eta, 2) * cosinus - c_i)/(pow(eta, 2) * cosinus + c_i)), 2);
+     return (F_s + F_p) / 2;
 }
 
-float D(float cos_theta)
+float tan2(float cosinus)
 {
-     float xi = 1;
+     return (1 - pow(cosinus, 2)) / pow(cosinus, 2);
+}
 
-     if (cos_theta <= 0)
-     {
+float D(float alpha, float cosinus)
+{
+     float Qui = 1;
+     if (cosinus < 0) {
           return 0;
      }
-
-     float cos_theta_carre = pow(cos_theta, 2.);
-     float tan_theta_carre = (1 - cos_theta_carre) / cos_theta_carre;
-     
-     return xi / (M_PI * pow(cos_theta, 4)) * pow(alpha, 2) / pow(pow(alpha, 2) + tan_theta_carre, 2);
+     return (Qui / PI * pow(cosinus, 4)) * (pow(alpha, 2) / pow((pow(alpha, 2) + tan2(cosinus)), 2));
 }
 
-float F(float cos_theta)
+float G1(float alpha, float cosinus)
 {
-     float sin_theta_carre = 1. - pow(cos_theta, 2.);
-     if (pow(eta, 2) < sin_theta_carre)
-     {
-          return 1; // Reflexion totale
-     }
-     float c_i = pow(pow(eta, 2) - sin_theta_carre, 0.5);
-     float F_s = pow(abs((cos_theta - c_i) / (cos_theta + c_i)), 2);
-     float F_p = pow(abs((pow(eta, 2) * cos_theta - c_i) / (pow(eta, 2) * cos_theta + c_i)), 2);
-     return (F_s + F_p) / 2;
+     return 2 / (1 + pow(1 + pow(alpha, 2) * tan2(cosinus), 1/2));
 }
 
 void main( void )
 {
      // This is the place where there's work to be done
-     vec4 eyeVector_norm = normalize(eyeVector);
-     vec4 lightVector_norm = normalize(lightVector);
-     vec4 vertNormal_norm = normalize(vertNormal);
 
-     // Lighting parameters
+     // Normalisation
+     vec4 lightVectorNorm = normalize(lightVector);
+     vec4 eyeVectorNorm = normalize(eyeVector);
+     vec4 vertNormalNorm = normalize(vertNormal);
+
+
      float ka = 0.2;
      float kd = 0.2;
      float ks = 0.6;
      float I = lightIntensity;
 
-     // Ambient lighting
-     vec4 Ca = ka * vertColor * I;
+     vec4 H = normalize((eyeVectorNorm - lightVectorNorm));
+     float cos_d = dot(eyeVectorNorm, H);
 
-     // Diffuse lighting
-     vec4 Cd = kd * vertColor * max(dot(vertNormal_norm, lightVector_norm), 0) * I;
+     vec4 ambiantLight = ka * vertColor * I;
+     vec4 diffuseLight = kd * vertColor * max(dot(vertNormalNorm, lightVectorNorm), 0) * I;
 
-     // Specular lighting
-     vec4 halfVec = normalize(eyeVector_norm - lightVector_norm);
-     float cos_theta = dot(halfVec, eyeVector_norm);
-     float F_theta = F(cos_theta);
-     vec4 Cs;
+     float alpha = (200 - shininess) / 200;
 
-     if(blinnPhong)
-     {
-          // Blinn-Phong model
-          Cs = F_theta * I * vertColor * pow(max(dot(vertNormal_norm, halfVec), 0), shininess);
-          if (cos_theta > 1 )
-          {
-               Cs = vec4(255,0,0,1);
-          }
+     fragColor = ambiantLight + diffuseLight;
+
+     if (blinnPhong) {
+          fragColor = fragColor + ks * F(cos_d) * vertColor * pow(max(dot(vertNormalNorm, H), 0), shininess) * I;
+     } else {
+          float cos_i = dot(vertNormalNorm, - lightVectorNorm);
+          float cos_h = dot(vertNormalNorm, H);
+          float cos_o = dot(vertNormalNorm, eyeVectorNorm);
+          float Cs = cos_i * ((F(cos_d) * D(alpha, cos_h) * G1(alpha, cos_i) * G1(alpha, cos_o)) / (4 * cos_i * cos_o));
+          fragColor = fragColor + ks * Cs * vertColor * I;
      }
-     else
-     {    
-          // Cook-Torrance model
-          float cos_theta_h = dot(halfVec, vertNormal_norm);
-          float D = D(cos_theta_h);
-          
-          float cos_theta_i = dot(-lightVector_norm, vertNormal_norm);
-          float G_i  = G(cos_theta_i);
-          
-          float cos_theta_o = dot(eyeVector_norm, vertNormal_norm);
-          float G_o  = G(cos_theta_o);
-
-          Cs = I * vertColor * F_theta * D * G_i * G_o / (4 * cos_theta_i * cos_theta_o) * I * vertColor * cos_theta_i;
-     }
-
-     fragColor = Ca + Cd + ks * Cs;
-
 }

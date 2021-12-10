@@ -707,7 +707,8 @@ void glShaderWindow::loadTexturesForShaders() {
         computeResult = 0;
     }
 	// Load textures as required by the shader.
-	if ((m_program->uniformLocation("colorTexture") != -1) || (ground_program->uniformLocation("colorTexture") != -1)) {
+	if ((m_program->uniformLocation("colorTexture") != -1) || (ground_program->uniformLocation("colorTexture") != -1) ||
+        ((compute_program != NULL) && (compute_program->uniformLocation("colorTexture") != -1))) {
 		glActiveTexture(GL_TEXTURE0);
         // the shader wants a texture. We load one.
         texture = new QOpenGLTexture(QImage(textureName));
@@ -963,6 +964,7 @@ void glShaderWindow::mousePressEvent(QMouseEvent *e)
         // On change le shader : on utilise phong le temps du mouvement
         QString shader2 = "2_phong";
         setShader(shader2);
+        isFullRt = true;
     }
 }
 

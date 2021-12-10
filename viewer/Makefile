@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = myViewer1.0.0
-DISTDIR = /user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/viewer/.tmp/myViewer1.0.0
+DISTDIR = /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/.tmp/myViewer1.0.0
 LINK          = g++
 LFLAGS        = -Wno-unknown-pragmas -fopenmp -Wl,-O1
 LIBS          = $(SUBLIBS) -L../trimesh2/lib -ltrimesh /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libGL.so -lpthread   
@@ -358,7 +358,7 @@ compiler_moc_header_clean:
 moc_openglwindow.cpp: src/openglwindow.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/viewer -I/user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/openglwindow.h -o moc_openglwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/openglwindow.h -o moc_openglwindow.cpp
 
 moc_glshaderwindow.cpp: src/glshaderwindow.h \
 		src/openglwindow.h \
@@ -369,7 +369,7 @@ moc_glshaderwindow.cpp: src/glshaderwindow.h \
 		../trimesh2/include/Color.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/viewer -I/user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:

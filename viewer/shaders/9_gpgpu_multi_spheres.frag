@@ -78,9 +78,9 @@ struct Sphere
 
 const int nb_spheres = 3;
 uniform Sphere spheres[nb_spheres] = Sphere[3](
-    Sphere(vec3(0, 0, 0), 1, 1., 0, vec3(1, 0, 0)),
-    Sphere(vec3(0, 3, 4), 4, 1., 1, vec3(0, 1, 0)),
-    Sphere(vec3(0, 0, -4), 0.5, 1., 2, vec3(0, 0, 1))
+    Sphere(vec3(0, 0, 0), 2, 1., 0, vec3(1, 0, 0)),
+    Sphere(vec3(0, 4, 4), 3, 1., 1, vec3(0, 1, 0)),
+    Sphere(vec3(1, 0, -4), 1, 1., 2, vec3(0, 0, 1))
 );
 
 

@@ -25,12 +25,8 @@ void main( void )
     vertNormal.xyz = normalize(normalMatrix * normal.xyz);
     vertNormal.w = 0.0;
 
-    // eyeVector in camera world (0,0,1)
-    eyeVector = vec4(0, 0, 0, 1) - matrix * vertex;
-    lightVector = matrix * (vertex - vec4(lightPosition, 1));
-
-    eyeVector = normalize(eyeVector);
-    lightVector = normalize(lightVector);
+    lightVector = normalize(matrix * (vertex - vec4(lightPosition, 1)));
+    eyeVector = normalize(vec4(0, 0, 0, 1) - matrix * vertex);
 
     gl_Position = perspective * matrix * vertex;
 }

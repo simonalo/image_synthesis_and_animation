@@ -4,59 +4,49 @@
 uniform mat4 mat_inverse;
 uniform mat4 persp_inverse;
 uniform sampler2D envMap;
+uniform vec3 center;
+uniform float radius;
 
 uniform bool transparent;
 uniform float shininess;
 uniform float eta;
-
-uniform vec3 center;
-uniform float radius;
 
 in vec4 position;
 
 out vec4 fragColor;
 
 
-float F(float cos_theta, float current_eta)
-{
-    float sin_theta_carre = 1. - pow(cos_theta, 2.);
-    if (pow(current_eta, 2) < sin_theta_carre)
-    {
-        return 1; // Reflexion totale
-    }
-    float c_i = pow(pow(current_eta, 2) - sin_theta_carre, 0.5);
-    float F_s = pow(abs((cos_theta - c_i) / (cos_theta + c_i)), 2);
-    float F_p = pow(abs((pow(current_eta, 2) * cos_theta - c_i) / (pow(current_eta, 2) * cos_theta + c_i)), 2);
-    return (F_s + F_p) / 2;
-}
-
 vec4 getColorFromEnvironment(in vec3 direction)
 {
-    vec3 u = normalize(direction);
-    float phi = acos(u.y);
-    float theta = atan(u.z, u.x);
-
+    // TODO
+    vec3 u_direction = normalize(direction);
+    float phi = acos(u_direction.y);
+    float theta = atan(u_direction.z, u_direction.x);
     return texture2D(envMap, vec2((theta+M_PI) / (2*M_PI), phi / M_PI));
 }
 
+float F(float cos_theta, float eta) {
+    float inv_eta = eta;
+    if ((pow(inv_eta, 2) - (1 - pow(cos_theta, 2))) < 0) {
+        return 1.0;
+    }
+    float ci = sqrt(pow(inv_eta, 2) - (1 - pow(cos_theta, 2)));
+    float Fs = pow(abs((cos_theta - ci) / (cos_theta + ci)), 2);
+    float Fp = pow(abs((pow(inv_eta, 2) * cos_theta - ci) / (pow(inv_eta, 2) * cos_theta + ci)), 2);
+
+    return (Fs + Fp) / 2;
+}
+
 bool raySphereIntersect(in vec3 start, in vec3 direction, out vec3 newPoint) {
-    vec3 cp = start - center;
-    float dist = length(cp);
     vec3 u = normalize(direction);
-    float a = dot(u, u);
-    float b = dot(u, cp);
-    float c = dot(cp, cp) - radius * radius;
-
-    float delta = pow(b, 2) - dot(cp, cp) + pow(radius, 2);
-
-    if (delta > 0)
-    {
-        float lambda = -b - sqrt(delta);
-        if (lambda <= 0.001)
-        {
+    vec3 CP = start - center;
+    float delta = (pow(dot(u, CP),2) - dot(CP, CP) + pow(radius, 2));
+    if (delta > 0){
+        float b = dot(u, CP);
+        float lambda = - b - sqrt(delta);
+        if (lambda <= 0.001) {
             lambda = -b + sqrt(delta);
-            if (lambda <= 0.001 )
-            {
+            if (lambda <= 0.001) {
                 newPoint = start;
                 return false;
             }
@@ -64,7 +54,6 @@ bool raySphereIntersect(in vec3 start, in vec3 direction, out vec3 newPoint) {
         newPoint = start + lambda * u;
         return true;
     }
-
     newPoint = start;
     return false;
 }
@@ -78,78 +67,60 @@ void main(void)
     worldPos /= worldPos.w;
     worldPos.w = 0;
     worldPos = normalize(worldPos);
-
     // Step 2: ray direction:
     vec3 u = normalize((mat_inverse * worldPos).xyz);
     vec3 eye = (mat_inverse * vec4(0, 0, 0, 1)).xyz;
-    
-    // Step 3 : Compute reflected and refracted
-    // Number of ray
-    int nb_rebound_max = 14;
-    int nb_rays = 0;
 
-    // Variables used to compute rays
-    vec3 normal = vec3(0); 
+    // TODO
+
+    // Initialization
+    vec3 start = vec3(eye.xyz);
+    vec3 newPoint = vec3(0);
+    vec3 normal = vec3(0);
     float current_eta = eta;
-    vec3 reflected_ray;
-    vec3 refracted_ray;
+    vec4 resultColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+    int nbMaxRebound = 100;
+    int nbRays = 0;
+
     float current_Fresnel = 1.0;
-    vec4 resultColor = vec4(0, 0, 0, 1);
+    vec3 reflected_direction = vec3(0);
+    vec3 refracted_direction = vec3(0);
+    
+    if (!transparent) {
+        nbMaxRebound = 1;
+    }
 
-    vec3 pointIntersect = vec3(0);
-    vec3 start = eye.xyz;
-
-    while (nb_rays < nb_rebound_max)
-    {
-        // Check if there is an intersection
-        if (raySphereIntersect(start, u, pointIntersect))
-        {
-            if (nb_rays != 0) 
-            {
-                normal = normalize(center - pointIntersect);
-                // Change eta each time we change of context
+    while (nbRays < nbMaxRebound) {
+        if (raySphereIntersect(start, u, newPoint)) {
+            if (nbRays==0) {
+                normal = normalize(newPoint - center);
+            } else {
+                normal = normalize(center - newPoint);
                 current_eta = 1/eta;
-            } 
-            else
-            {
-                normal = normalize(pointIntersect - center);
             }
-            
-            // Compute reflected and refracted rays
-            reflected_ray = reflect(u, normal);
-            refracted_ray = refract(u, normal, 1 / current_eta);
-
-            // Compute intensity with fresnel coefficient
-            float cos_theta = dot(normal, normalize(reflected_ray));
-            float intensity = F(cos_theta, current_eta);
-
-            if (nb_rays == 0) 
-            {
-                u = vec3(refracted_ray.xyz);
+            reflected_direction = reflect(u, normal);
+            refracted_direction = refract(u, normal, 1/current_eta);
+            float cos_theta = dot(normal, normalize(reflected_direction));
+            float fresnel = F(cos_theta, current_eta);
+            if (nbRays==0) {
+                u = vec3(refracted_direction.xyz);
                 if (!transparent) {
-                    intensity = 1.0;
+                    fresnel = 1.0;
                 }
-                resultColor += intensity * getColorFromEnvironment(reflected_ray);
-                current_Fresnel *= (1 - intensity);
-            } 
-            else
-            {
-                u = vec3(reflected_ray.xyz);
-                resultColor += current_Fresnel * (1 - intensity) * getColorFromEnvironment(refracted_ray);
-                current_Fresnel *= intensity;
+                resultColor += fresnel * getColorFromEnvironment(reflected_direction);
+                current_Fresnel *= (1 - fresnel);
+            } else {
+                u = vec3(reflected_direction.xyz);
+                resultColor += current_Fresnel * (1 - fresnel) * getColorFromEnvironment(refracted_direction);
+                current_Fresnel *= fresnel;
             }
-
-
-            start = vec3(pointIntersect.xyz);
-            nb_rays++;
-        }
-        else 
-        {
-            // No intersection : don't need more computing
+            start = vec3(newPoint.xyz);
+            nbRays++;
+        } else {
             resultColor += getColorFromEnvironment(u);
             break;
         }
     }
-
     fragColor = resultColor;
 }

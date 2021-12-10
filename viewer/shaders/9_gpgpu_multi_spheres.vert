@@ -15,7 +15,7 @@ out vec4 position;
 void main( void )
 {
     // You need to use color/normal/textcoords. Bad things can happen otherwise
-    vertColor = vec4(120, 200, 100, 1);
+    vertColor = vec4(0.1, 0.1, 0.1, 1);
     vertNormal = normal;
     textCoords = texcoords;
 
