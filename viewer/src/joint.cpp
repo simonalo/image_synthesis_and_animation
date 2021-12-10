@@ -12,7 +12,9 @@ Joint* Joint::createFromFile(std::string fileName) {
 		while(!inputfile.eof()) {
 			string buf;	
 			Joint::parseHierarchy(inputfile, buf) 
+
 			// Parse joints
+			Joint::parseJoint(inputfile, buf) 
 			// Parse motion
 		}
 		inputfile.close();

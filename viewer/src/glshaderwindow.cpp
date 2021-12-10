@@ -22,13 +22,13 @@
 glShaderWindow::glShaderWindow(QWindow *parent)
 // Initialize obvious default values here (e.g. 0 for pointers)
     : OpenGLWindow(parent), modelMesh(0),
-      m_program(0), ground_program(0), compute_program(0), shadowMapGenerationProgram(0),
+      m_program(0), ground_program(0), skeleton_program(0), compute_program(0), shadowMapGenerationProgram(0),
       g_vertices(0), g_normals(0), g_texcoords(0), g_colors(0), g_indices(0),
       gpgpu_vertices(0), gpgpu_normals(0), gpgpu_texcoords(0), gpgpu_colors(0), gpgpu_indices(0),
       environmentMap(0), texture(0), permTexture(0), pixels(0), mouseButton(Qt::NoButton), auxWidget(0),
       isGPGPU(false), hasComputeShaders(false), blinnPhong(true), transparent(true), eta(1.5), lightIntensity(1.0f), shininess(50.0f), lightDistance(5.0f), groundDistance(0.78),
       shadowMap_fboId(0), shadowMap_rboId(0), shadowMap_textureId(0), fullScreenSnapshots(false), computeResult(0), 
-      m_indexBuffer(QOpenGLBuffer::IndexBuffer), ground_indexBuffer(QOpenGLBuffer::IndexBuffer)
+      m_indexBuffer(QOpenGLBuffer::IndexBuffer), ground_indexBuffer(QOpenGLBuffer::IndexBuffer), skeleton_indexBuffer(QOpenGLBuffer::IndexBuffer)
 {
     // Default values you might want to tinker with
     shadowMapDimension = 2048;
@@ -51,6 +51,10 @@ glShaderWindow::~glShaderWindow()
     if (ground_program) {
         ground_program->release();
         delete ground_program;
+    }
+    if (skeleton_program) {
+        skeleton_program->release();
+        delete skeleton_program;
     }
     if (shadowMapGenerationProgram) {
         shadowMapGenerationProgram->release();
@@ -88,10 +92,21 @@ glShaderWindow::~glShaderWindow()
     ground_texcoordBuffer.destroy();
     ground_vao.release();
     ground_vao.destroy();
+    skeleton_vertexBuffer.release();
+    skeleton_vertexBuffer.destroy();
+    skeleton_colorBuffer.release();
+    skeleton_colorBuffer.destroy();
+    skeleton_indexBuffer.release();
+    skeleton_indexBuffer.destroy();
+    skeleton_vao.release();
+    skeleton_vao.destroy();
     if (g_vertices) delete [] g_vertices;
     if (g_colors) delete [] g_colors;
     if (g_normals) delete [] g_normals;
     if (g_indices) delete [] g_indices;
+    if (s_vertices) delete [] s_vertices;
+    if (s_colors) delete [] s_colors;
+    if (s_indices) delete [] s_indices;
     if (gpgpu_vertices) delete [] gpgpu_vertices;
     if (gpgpu_colors) delete [] gpgpu_colors;
     if (gpgpu_normals) delete [] gpgpu_normals;
@@ -112,6 +127,23 @@ void glShaderWindow::openSceneFromFile() {
     if (!modelName.isNull())
     {
         openScene();
+        renderNow();
+    }
+}
+
+void glShaderWindow::openSkeletonFromFile() {
+    QFileDialog dialog(0, "Open BVH file", workingDirectory, "*.bvh");
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    QString filename;
+    int ret = dialog.exec();
+    if (ret == QDialog::Accepted) {
+        workingDirectory = dialog.directory().path() + "/";
+        skeletonName = dialog.selectedFiles()[0];
+    }
+
+    if (!skeletonName.isNull())
+    {
+        openSkeleton();
         renderNow();
     }
 }
@@ -528,6 +560,46 @@ void glShaderWindow::bindSceneToProgram()
     shadowMapGenerationProgram->enableAttributeArray( "texcoords" );
     ground_program->release();
     ground_vao.release();
+
+    // Bind the skeleton part
+    skeleton_vao.bind();
+    skeleton_vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    skeleton_vertexBuffer.bind();
+
+
+    // TODO : compute s_numPoints
+    s_numPoints = 8;
+
+    // int number = 100;
+
+    s_vertices = new trimesh::point[s_numPoints];
+    s_colors = new trimesh::point[s_numPoints];
+    s_indices = new int[2*(s_numPoints-1)];
+
+    // TODO : compute s_numIndices
+    s_numIndices=0;
+
+
+    skeleton_vertexBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    skeleton_vertexBuffer.bind();
+    skeleton_vertexBuffer.allocate(s_vertices, s_numPoints * sizeof(trimesh::point));
+    skeleton_colorBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    skeleton_colorBuffer.bind();
+    skeleton_colorBuffer.allocate(s_colors, s_numPoints * sizeof(trimesh::point));
+    skeleton_indexBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    skeleton_indexBuffer.bind();
+    skeleton_indexBuffer.allocate(s_indices, s_numIndices * sizeof(int));
+
+    skeleton_program->bind();
+    skeleton_vertexBuffer.bind();
+    skeleton_program->setAttributeBuffer("vertex", GL_FLOAT, 0, 4);
+    skeleton_program->enableAttributeArray("vertex");
+    skeleton_colorBuffer.bind();
+    skeleton_program->setAttributeBuffer("color", GL_FLOAT, 0, 4);
+    skeleton_program->enableAttributeArray("color");
+    skeleton_program->release();
+
+    skeleton_vao.release();
 }
 
 void glShaderWindow::initializeTransformForScene()
@@ -582,6 +654,22 @@ void glShaderWindow::openScene()
     bindSceneToProgram();
     initializeTransformForScene();
 }
+
+void glShaderWindow::openSkeleton()
+{
+    if (skeletonName.isNull()) {
+        QMessageBox::warning(0, tr("qViewer"),
+                             tr("Could not load file ") + modelName, QMessageBox::Ok);
+        openSkeletonFromFile();
+    }
+
+    skeleton = Joint::createFromFile(skeletonName.toStdString());
+    
+    bindSceneToProgram();
+    initializeTransformForScene();
+}
+}
+
 
 void glShaderWindow::saveScene()
 {
@@ -707,8 +795,7 @@ void glShaderWindow::loadTexturesForShaders() {
         computeResult = 0;
     }
 	// Load textures as required by the shader.
-	if ((m_program->uniformLocation("colorTexture") != -1) || (ground_program->uniformLocation("colorTexture") != -1) ||
-        ((compute_program != NULL) && (compute_program->uniformLocation("colorTexture") != -1))) {
+	if ((m_program->uniformLocation("colorTexture") != -1) || (ground_program->uniformLocation("colorTexture") != -1)) {
 		glActiveTexture(GL_TEXTURE0);
         // the shader wants a texture. We load one.
         texture = new QOpenGLTexture(QImage(textureName));
@@ -964,7 +1051,6 @@ void glShaderWindow::mousePressEvent(QMouseEvent *e)
         // On change le shader : on utilise phong le temps du mouvement
         QString shader2 = "2_phong";
         setShader(shader2);
-        isFullRt = true;
     }
 }
 

@@ -3,6 +3,7 @@
 
 #include "openglwindow.h"
 #include "TriMesh.h"
+#include "joint.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMatrix4x4>
@@ -34,6 +35,7 @@ public:
 public slots:
     void openSceneFromFile();
     void openNewTexture();
+    void openSkeletonFromFile();
     void openNewEnvMap();
     void saveScene();
     void toggleFullScreen();
@@ -80,6 +82,7 @@ private:
     void initPermTexture();
     void loadTexturesForShaders();
     void openScene();
+    void openSkeleton();
     void mouseToTrackball(QVector2D &in, QVector3D &out);
 
     // Are we using GPGPU?
@@ -93,6 +96,7 @@ private:
     QString  textureName;
     QString  envMapName;
     trimesh::TriMesh* modelMesh;
+    Joint* skeleton; // Add skeleton
     uchar* pixels;
     // Ground
     trimesh::point *g_vertices;
@@ -102,6 +106,14 @@ private:
     int *g_indices;
     int g_numPoints;
     int g_numIndices;
+    // Skeleton (Everything is made like ground)
+    trimesh::point *s_vertices;
+    trimesh::point *s_colors;
+    trimesh::vec2 *s_texcoords;
+    trimesh::vec *s_normals;
+    int *s_indices;
+    int s_numPoints;
+    int s_numIndices;
     // GPGPU
     trimesh::point *gpgpu_vertices;
     trimesh::vec *gpgpu_normals;
@@ -125,6 +137,7 @@ private:
     // OpenGL variables encapsulated by Qt
     QOpenGLShaderProgram *m_program;
     QOpenGLShaderProgram *ground_program;
+    QOpenGLShaderProgram *skeleton_program;
     QOpenGLShaderProgram *compute_program;
     QOpenGLShaderProgram *shadowMapGenerationProgram;
     QOpenGLTexture* environmentMap;
@@ -149,6 +162,13 @@ private:
     QOpenGLBuffer ground_normalBuffer;
     QOpenGLBuffer ground_colorBuffer;
     QOpenGLBuffer ground_texcoordBuffer;
+    // skeleton
+    QOpenGLVertexArrayObject skeleton_vao;
+    QOpenGLBuffer skeleton_vertexBuffer;
+    QOpenGLBuffer skeleton_indexBuffer;
+    QOpenGLBuffer skeleton_colorBuffer;
+    QOpenGLBuffer skeleton_texcoordBuffer;
+    QOpenGLBuffer skeleton_normalBuffer;
     // Matrix for all objects
     QMatrix4x4 m_matrix[3]; // 0 = object, 1 = light, 2 = ground
     QMatrix4x4 m_perspective;
