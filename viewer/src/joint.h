@@ -8,15 +8,17 @@
 #include <fstream>
 
 // Keywords usefull for parser
-constexpr std::string kHierarchy = "HIERARCHY";
-constexpr std::string kRoot = "ROOT";
-constexpr std::string kOffset = "OFFSET";
-constexpr std::string kChannels = "CHANNELS";
-constexpr std::string kJoint = "JOINT";
-constexpr std::string kEnd = "END";
-constexpr std::string kMotion = "MOTION";
-constexpr std::string kbrackO = "{";
-constexpr std::string kbrackC = "}";
+const std::string kHierarchy = "HIERARCHY";
+const std::string kRoot = "ROOT";
+const std::string kOffset = "OFFSET";
+const std::string kChannels = "CHANNELS";
+const std::string kJoint = "JOINT";
+const std::string kEnd = "END";
+const std::string kMotion = "MOTION";
+const std::string kbrackO = "{";
+const std::string kbrackC = "}";
+
+using namespace std;
 
 class AnimCurve {
 public :

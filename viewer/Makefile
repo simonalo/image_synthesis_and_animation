@@ -367,6 +367,7 @@ moc_glshaderwindow.cpp: src/glshaderwindow.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
+		src/joint.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
@@ -393,7 +394,8 @@ main.o: src/main.cpp src/glshaderwindow.h \
 		../trimesh2/include/Vec.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
-		../trimesh2/include/Color.h
+		../trimesh2/include/Color.h \
+		src/joint.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o src/main.cpp
 
 openglwindow.o: src/openglwindow.cpp src/openglwindow.h
@@ -406,6 +408,7 @@ glshaderwindow.o: src/glshaderwindow.cpp src/glshaderwindow.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
+		src/joint.h \
 		src/perlinNoise.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o glshaderwindow.o src/glshaderwindow.cpp
 
