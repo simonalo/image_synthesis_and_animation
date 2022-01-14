@@ -3,6 +3,8 @@
 
 using namespace std;
 
+float Joint::FRAME_TIME = 0.0;
+
 Joint* Joint::createFromFile(std::string fileName) {
 	Joint* root = NULL;
 	cout << "Loading from " << fileName << endl;
@@ -116,6 +118,7 @@ void Joint::parseJoint(ifstream& file, string& buf) {
 		}
 		else if (buf == kMotion) {
 			// Next part (motion)
+			Joint::parseMotion(file, buf, root)
 			break;
 		}
 		else {
@@ -168,5 +171,45 @@ void Joint::parseChannels(ifstream& file, string& buf, Joint* joint) {
 		currAnim.name = buf;
 
 		current->_dofs.push_back(currAnim);
+	}
+}
+
+void Joint::parseMotion(ifstream& file, string& buf, Joint* joint) {
+	file >> buf;
+	if (buf != kMotion) {
+		cerr << "Error : Can't find MOTION keyword." << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	file >> buf;  // pass "Frame"
+	file >> buf;  // nbFrames
+
+	int nbFrames = stoi(buf);
+
+	file >> buf;  // pass "Frame"
+	file >> buf;  // pass "Time"
+
+	double frameTime;
+	file>>frameTime;
+    Joint::FRAME_TIME = frameTime;
+	file>>buf;
+	for (int frame=0; frame<nbFrames; frame++) {
+		Joint::parseFrame(file, buf, joint);
+	}
+}
+
+void Joint::parseFrame(ifstream& file, string& buf, Joint* current) {
+	if (current==NULL) {
+		cerr << "Error in motionParsing : current Joint can't be NULL" << endl;
+		exit(EXIT_FAILURE);
+	}
+	int nbChannels = current->_dofs.size();
+	for (int channel=0; channel<nbChannels; channel++) {
+		current->_dofs[channel]._values.push_back(stod(buf));
+		file >> buf;
+	}
+	vector<Joint*>::iterator children;
+	for (children=current->_children.begin(); children!=current->_children.end(); children++) {
+		Joint::parseFrame(file, buf, *children);
 	}
 }
