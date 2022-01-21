@@ -3,20 +3,24 @@
 
 #include <string>
 #include <vector>
-#include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include "../../trimesh2/include/Box.h"
+#include <QMatrix4x4>
+#include <QVector3D>
 
 // Keywords usefull for parser
-constexpr std::string kHierarchy = "HIERARCHY";
-constexpr std::string kRoot = "ROOT";
-constexpr std::string kOffset = "OFFSET";
-constexpr std::string kChannels = "CHANNELS";
-constexpr std::string kJoint = "JOINT";
-constexpr std::string kEnd = "END";
-constexpr std::string kMotion = "MOTION";
-constexpr std::string kbrackO = "{";
-constexpr std::string kbrackC = "}";
+const std::string kHierarchy = "HIERARCHY";
+const std::string kRoot = "ROOT";
+const std::string kOffset = "OFFSET";
+const std::string kChannels = "CHANNELS";
+const std::string kJoint = "JOINT";
+const std::string kEnd = "End";
+const std::string kMotion = "MOTION";
+const std::string kbrackO = "{";
+const std::string kbrackC = "}";
+
+using namespace std;
 
 class AnimCurve {
 public :
@@ -34,6 +38,9 @@ enum RotateOrder {roXYZ=0, roYZX, roZXY, roXZY, roYXZ, roZYX};
 
 class Joint {
 public :
+	static std::vector<string> list_names;
+	static int max_id;
+	int id;
 	std::string _name;					// name of joint
 	double _offX;						// initial offset in X
 	double _offY;						// initial offset in Y
@@ -52,12 +59,16 @@ public :
 
 public :
 	// Constructor :
-	Joint() {};
+	Joint();
 	// Destructor :
-	~Joint() {
-		_dofs.clear();
-		_children.clear();
-	}
+	~Joint();
+	static int findIndexOfJoint(string name);
+
+	void getTransformationMatrices(std::vector<QMatrix4x4>& bindedMatrices, std::vector<QMatrix4x4>& transformMatrices); // A appliquer sur le root
+
+    void getChildTransformationMatrices(std::vector<QMatrix4x4>& bindedMatrices,std::vector<QMatrix4x4>& transformMatrices,
+                                        QMatrix4x4 parentPosition, QMatrix4x4 parentRotation);
+
 
 	// Create from data :
 	static Joint* create(std::string name, double offX, double offY, double offZ, Joint* parent) {
@@ -73,7 +84,7 @@ public :
 		child->_curRy = 0;
 		child->_curRz = 0;
 		child->_parent = parent;
-		if(parent != NULL) {
+		if(parent != nullptr) {
 			parent->_children.push_back(child);
 		}
 		return child;
@@ -82,15 +93,29 @@ public :
 	// Load from file (.bvh) :	
 	static Joint* createFromFile(std::string fileName);
 
+	void animate(int iframe=0);
+
 	static void parseHierarchy(ifstream& file, string& buf);
 	static void parseJoint(ifstream& file, string& buf);
 	static void parseOffset(ifstream& file, string& buf, Joint* joint, Joint* parent);
 	static void parseChannels(ifstream& file, string& buf, Joint* joint);
 
-	void animate(int iframe=0);
-
 	// Analysis of degrees of freedom :
 	void nbDofs();
+
+	vector<trimesh::point> exportPositions();
+
+	void exportPositions(QMatrix4x4& transform, vector<trimesh::point>& positions);
+
+	void exportChildPositions(QMatrix4x4& matriceTransformation,
+			QVector3D& positionRoot, vector<trimesh::point> &positions);
+
+    vector<trimesh::point> exportMiddleArticulations();
+
+    void exportChildMiddleArticulations(QMatrix4x4& matriceTransformation,
+            QVector3D& positionRoot, vector<trimesh::point> &positions);
+
+
 };
 
 

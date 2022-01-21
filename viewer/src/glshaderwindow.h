@@ -4,6 +4,7 @@
 #include "openglwindow.h"
 #include "TriMesh.h"
 #include "joint.h"
+#include "weight.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMatrix4x4>
@@ -27,15 +28,17 @@ public:
     void initialize();
     void render();
     void resize(int x, int y);
-    void setWorkingDirectory(QString& myPath, QString& myName, QString& texture, QString& envMap);
+    void setWorkingDirectory(QString& myPath, QString& myName, QString& texture, QString& envMap, QString& mySkeleton, QString& weightsName);
     inline const QString& getWorkingDirectory() { return workingDirectory;};
     inline const QStringList& fragShaderSuffix() { return m_fragShaderSuffix;};
     inline const QStringList& vertShaderSuffix() { return m_vertShaderSuffix;};
+    void calculateNewPosition(vector<QMatrix4x4>& transformMatrices, vector<QMatrix4x4>& offsetMatrix);
 
 public slots:
     void openSceneFromFile();
     void openNewTexture();
     void openSkeletonFromFile();
+    void openWeightsForSkeleton();
     void openNewEnvMap();
     void saveScene();
     void toggleFullScreen();
@@ -83,7 +86,11 @@ private:
     void loadTexturesForShaders();
     void openScene();
     void openSkeleton();
+    void openWeights();
     void mouseToTrackball(QVector2D &in, QVector3D &out);
+    void fillValuesFromJoints(Joint* current, const vector<trimesh::point>& _vert);
+
+    vector<trimesh::point> initVertices;
 
     // Are we using GPGPU?
     bool isGPGPU;
@@ -93,6 +100,8 @@ private:
     // Model we are displaying:
     QString  workingDirectory;
     QString  modelName;
+    QString  skeletonName;
+    QString  weightsName;
     QString  textureName;
     QString  envMapName;
     trimesh::TriMesh* modelMesh;
@@ -114,6 +123,8 @@ private:
     int *s_indices;
     int s_numPoints;
     int s_numIndices;
+    // Weights
+    vector<Weight> VerticesWeights;
     // GPGPU
     trimesh::point *gpgpu_vertices;
     trimesh::vec *gpgpu_normals;

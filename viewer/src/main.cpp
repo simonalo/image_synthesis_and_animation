@@ -126,6 +126,8 @@ int main( int argc, char* argv[] )
     QString sceneName = "lemming.ply"; //"lemming.ply";
     QString textureName = "wildtextures-seamless-wood-planks.jpg";
     QString envMapName = "pisa.png";
+    QString skeletonName = "walk1.bvh";
+    QString weightsName = "weights.txt";
 
     // Read scene name from arguments:
     QStringList arguments = app.arguments();
@@ -159,7 +161,7 @@ int main( int argc, char* argv[] )
 #else
     appPath = appPath + "/models/";
 #endif
-    window->setWorkingDirectory(appPath, sceneName, textureName, envMapName);
+    window->setWorkingDirectory(appPath, sceneName, textureName, envMapName, skeletonName, weightsName);
     // Embedding a QWindow in a QWidget, only way to combine it with widgets
     QWidget * container = QWidget::createWindowContainer(window);
 

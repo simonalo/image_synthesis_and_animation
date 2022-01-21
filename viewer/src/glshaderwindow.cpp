@@ -132,7 +132,7 @@ void glShaderWindow::openSceneFromFile() {
 }
 
 void glShaderWindow::openSkeletonFromFile() {
-    QFileDialog dialog(0, "Open BVH file", workingDirectory, "*.bvh");
+    QFileDialog dialog(0, "Open BVH file", workingDirectory + "../models/", "*.bvh");
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     QString filename;
     int ret = dialog.exec();
@@ -144,8 +144,41 @@ void glShaderWindow::openSkeletonFromFile() {
     if (!skeletonName.isNull())
     {
         openSkeleton();
-        renderNow();
     }
+}
+
+void glShaderWindow::openWeightsForSkeleton(){
+    QFileDialog dialog(0, "Open weights file for skeleton", workingDirectory+"../models/", "*.txt");
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    QString filename;
+    int ret = dialog.exec();
+    if (ret == QDialog::Accepted) {
+        workingDirectory = dialog.directory().path() + "/";
+        weightsName = dialog.selectedFiles()[0];
+    }
+
+    if (skeleton == NULL){
+        std::cerr << "Input a skeleton before weights" << endl;
+        return;
+    }
+
+    if (!weightsName.isNull())
+    {
+        VerticesWeights.clear();
+        openWeights();
+    }
+}
+
+void glShaderWindow::openWeights(){
+    VerticesWeights.clear();
+    // Weight::createFromFile(weightsName.toStdString(), VerticesWeights);
+    vector<trimesh::point> jointPosition = skeleton->exportMiddleArticulations();
+    Weight::createRigidWeights(modelMesh->vertices, jointPosition, VerticesWeights);
+    std::cerr << "CREATED FROM FILE " << VerticesWeights.size() << endl;
+    vector<QMatrix4x4> offsetMatrices;
+    std::vector<QMatrix4x4> transformMatrices;
+    skeleton->getTransformationMatrices(transformMatrices, offsetMatrices);
+    calculateNewPosition(offsetMatrices, transformMatrices);
 }
 
 void glShaderWindow::openNewTexture() {
@@ -242,6 +275,17 @@ void glShaderWindow::updateEta(int etaSliderValue)
 {
     eta = etaSliderValue/100.0;
     renderNow();
+}
+
+void glShaderWindow::fillValuesFromJoints(Joint* current, const vector<trimesh::point>& _vert)
+{
+    s_colors[current->id-1] = trimesh::point(1.0, 1.0, 1.0, 1.0);
+    s_vertices[current->id-1] = _vert[current->id-1];
+    for (int i=0; i<current->_children.size(); i++) {
+        s_indices[s_numIndices++] = current->id-1;
+        s_indices[s_numIndices++] = current->_children[i]->id-1;
+        fillValuesFromJoints(current->_children[i], _vert);
+    }
 }
 
 QWidget *glShaderWindow::makeAuxWindow()
@@ -561,24 +605,24 @@ void glShaderWindow::bindSceneToProgram()
     ground_program->release();
     ground_vao.release();
 
-    // Bind the skeleton part
+    // Bind the skeleton like ground
     skeleton_vao.bind();
     skeleton_vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     skeleton_vertexBuffer.bind();
 
-
-    // TODO : compute s_numPoints
-    s_numPoints = 8;
-
-    // int number = 100;
+    s_numPoints = skeleton->max_id - 1;
 
     s_vertices = new trimesh::point[s_numPoints];
     s_colors = new trimesh::point[s_numPoints];
     s_indices = new int[2*(s_numPoints-1)];
 
-    // TODO : compute s_numIndices
-    s_numIndices=0;
+    s_numIndices = 0;
+    QMatrix4x4 transform;
+    vector<trimesh::point> _vert;
 
+    skeleton->exportPositions(transform, _vert);
+
+    fillValuesFromJoints(skeleton, _vert);
 
     skeleton_vertexBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
     skeleton_vertexBuffer.bind();
@@ -634,10 +678,13 @@ void glShaderWindow::openScene()
                              tr("Could not load file ") + modelName, QMessageBox::Ok);
         openSceneFromFile();
     }
+    initVertices = modelMesh->vertices;
     modelMesh->need_bsphere();
     modelMesh->need_bbox();
     modelMesh->need_normals();
     modelMesh->need_faces();
+    cout << "Open skeleteton" << endl;
+    openSkeleton();
     m_center = QVector3D(modelMesh->bsphere.center[0],
             modelMesh->bsphere.center[1],
             modelMesh->bsphere.center[2]);
@@ -651,12 +698,14 @@ void glShaderWindow::openScene()
 	if (compute_program) {
         createSSBO();
     }
+
     bindSceneToProgram();
     initializeTransformForScene();
 }
 
 void glShaderWindow::openSkeleton()
 {
+
     if (skeletonName.isNull()) {
         QMessageBox::warning(0, tr("qViewer"),
                              tr("Could not load file ") + modelName, QMessageBox::Ok);
@@ -667,7 +716,6 @@ void glShaderWindow::openSkeleton()
     
     bindSceneToProgram();
     initializeTransformForScene();
-}
 }
 
 
@@ -920,6 +968,8 @@ void glShaderWindow::initialize()
     }
     shadowMapGenerationProgram = prepareShaderProgram(shaderPath + "h_shadowMapGeneration.vert", shaderPath + "h_shadowMapGeneration.frag");
 
+    skeleton_program = prepareShaderProgram(shaderPath + "joint_bvh.vert", shaderPath + "joint_bvh.frag");
+
     // loading texture:
     loadTexturesForShaders();
 
@@ -942,6 +992,16 @@ void glShaderWindow::initialize()
     ground_normalBuffer.create();
     ground_texcoordBuffer.create();
     ground_vao.release();
+
+    skeleton_vao.create();
+    skeleton_vao.bind();
+    skeleton_vertexBuffer.create();
+    skeleton_colorBuffer.create();
+    skeleton_normalBuffer.create();
+    skeleton_indexBuffer.create();
+    skeleton_texcoordBuffer.create();
+    skeleton_vao.release();
+
     openScene();
 }
 
@@ -1019,12 +1079,14 @@ QOpenGLShaderProgram* glShaderWindow::prepareComputeProgram(const QString& compu
     return program;
 }
 
-void glShaderWindow::setWorkingDirectory(QString& myPath, QString& myName, QString& texture, QString& envMap)
+void glShaderWindow::setWorkingDirectory(QString& myPath, QString& myName, QString& texture, QString& envMap, QString& mySkeleton, QString& myWeights)
 {
     workingDirectory = myPath;
     modelName = myPath + myName;
     textureName = myPath + "../textures/" + texture;
     envMapName = myPath + "../textures/" + envMap;
+    skeletonName = myPath + mySkeleton;
+    weightsName = myPath + myWeights;
 }
 
 void glShaderWindow::mouseToTrackball(QVector2D &mousePosition, QVector3D &spacePosition)
@@ -1156,6 +1218,16 @@ void glShaderWindow::render()
     QMatrix4x4 mat_inverse = m_matrix[0];
     QMatrix4x4 persp_inverse = m_perspective;
 
+    if (getAnimating()){
+        std::vector<QMatrix4x4> offsetMatrices;
+        std::vector<QMatrix4x4> transformMatrices;
+        skeleton->getTransformationMatrices(transformMatrices, offsetMatrices);
+        calculateNewPosition(offsetMatrices, transformMatrices);
+
+        m_vertexBuffer.bind();
+        m_vertexBuffer.write(0, &(modelMesh->vertices.front()), modelMesh->vertices.size() * sizeof(trimesh::point));
+    }
+
     if (isGPGPU || hasComputeShaders) {
         bool invertible;
         mat_inverse = mat_inverse.inverted(&invertible);
@@ -1286,5 +1358,48 @@ void glShaderWindow::render()
         glDrawElements(GL_TRIANGLES, g_numIndices, GL_UNSIGNED_INT, 0);
         ground_vao.release();
         ground_program->release();
+    }
+
+    // we also bind the skeleton rendering
+    skeleton_program->bind();
+    skeleton_program->setUniformValue("matrix", m_matrix[0]);
+    skeleton_program->setUniformValue("perspective", m_perspective);
+
+    if (getAnimating()){
+        QMatrix4x4 transform;
+        vector<trimesh::point> _vert;
+        skeleton->exportPositions(transform, _vert);
+        s_numIndices = 0;
+        fillValuesFromJoints(skeleton, _vert);
+        skeleton_vertexBuffer.bind();
+        skeleton_vertexBuffer.write(0, s_vertices, s_numPoints*sizeof(trimesh::point));
+        skeleton_indexBuffer.bind();
+        skeleton_indexBuffer.write(0, s_indices, s_numIndices*sizeof(int));
+    }
+
+    skeleton_vao.bind();
+    glDrawElements(GL_LINES, s_numIndices, GL_UNSIGNED_INT, 0);
+    skeleton_vao.release();
+    skeleton_program->release();
+}
+
+void glShaderWindow::calculateNewPosition(vector<QMatrix4x4>& transformMatrices, vector<QMatrix4x4>& offsetMatrices){
+    for (int i = 0; i < modelMesh->vertices.size(); i++){
+        trimesh::point current = initVertices[i];
+        Weight currentWeight = VerticesWeights[i];
+        trimesh::point newPoint;
+        for (int j = 0; j < currentWeight.size(); j++){
+            if (currentWeight.getWeight(j) != 0){
+                QVector3D tmpVec(current[0], current[1], current[2]);
+
+                QVector3D wVec =  transformMatrices[j] * offsetMatrices[j].inverted() * tmpVec ;
+                newPoint += currentWeight.getWeight(j) * trimesh::point(wVec[0],
+                        wVec[1], wVec[2], 1);
+
+            }
+        }
+
+
+        modelMesh->vertices[i] = newPoint;
     }
 }

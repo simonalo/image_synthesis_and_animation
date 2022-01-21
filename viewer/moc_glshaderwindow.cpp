@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_glShaderWindow_t {
-    QByteArrayData data[23];
-    char stringdata0[328];
+    QByteArrayData data[25];
+    char stringdata0[372];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -35,30 +35,33 @@ QT_MOC_LITERAL(0, 0, 14), // "glShaderWindow"
 QT_MOC_LITERAL(1, 15, 17), // "openSceneFromFile"
 QT_MOC_LITERAL(2, 33, 0), // ""
 QT_MOC_LITERAL(3, 34, 14), // "openNewTexture"
-QT_MOC_LITERAL(4, 49, 13), // "openNewEnvMap"
-QT_MOC_LITERAL(5, 63, 9), // "saveScene"
-QT_MOC_LITERAL(6, 73, 16), // "toggleFullScreen"
-QT_MOC_LITERAL(7, 90, 14), // "saveScreenshot"
-QT_MOC_LITERAL(8, 105, 13), // "makeAuxWindow"
-QT_MOC_LITERAL(9, 119, 8), // "QWidget*"
-QT_MOC_LITERAL(10, 128, 13), // "setWindowSize"
-QT_MOC_LITERAL(11, 142, 4), // "size"
-QT_MOC_LITERAL(12, 147, 9), // "setShader"
-QT_MOC_LITERAL(13, 157, 19), // "cookTorranceClicked"
-QT_MOC_LITERAL(14, 177, 17), // "blinnPhongClicked"
-QT_MOC_LITERAL(15, 195, 18), // "transparentClicked"
-QT_MOC_LITERAL(16, 214, 13), // "opaqueClicked"
-QT_MOC_LITERAL(17, 228, 20), // "updateLightIntensity"
-QT_MOC_LITERAL(18, 249, 16), // "lightSliderValue"
-QT_MOC_LITERAL(19, 266, 15), // "updateShininess"
-QT_MOC_LITERAL(20, 282, 20), // "shininessSliderValue"
-QT_MOC_LITERAL(21, 303, 9), // "updateEta"
-QT_MOC_LITERAL(22, 313, 14) // "etaSliderValue"
+QT_MOC_LITERAL(4, 49, 20), // "openSkeletonFromFile"
+QT_MOC_LITERAL(5, 70, 22), // "openWeightsForSkeleton"
+QT_MOC_LITERAL(6, 93, 13), // "openNewEnvMap"
+QT_MOC_LITERAL(7, 107, 9), // "saveScene"
+QT_MOC_LITERAL(8, 117, 16), // "toggleFullScreen"
+QT_MOC_LITERAL(9, 134, 14), // "saveScreenshot"
+QT_MOC_LITERAL(10, 149, 13), // "makeAuxWindow"
+QT_MOC_LITERAL(11, 163, 8), // "QWidget*"
+QT_MOC_LITERAL(12, 172, 13), // "setWindowSize"
+QT_MOC_LITERAL(13, 186, 4), // "size"
+QT_MOC_LITERAL(14, 191, 9), // "setShader"
+QT_MOC_LITERAL(15, 201, 19), // "cookTorranceClicked"
+QT_MOC_LITERAL(16, 221, 17), // "blinnPhongClicked"
+QT_MOC_LITERAL(17, 239, 18), // "transparentClicked"
+QT_MOC_LITERAL(18, 258, 13), // "opaqueClicked"
+QT_MOC_LITERAL(19, 272, 20), // "updateLightIntensity"
+QT_MOC_LITERAL(20, 293, 16), // "lightSliderValue"
+QT_MOC_LITERAL(21, 310, 15), // "updateShininess"
+QT_MOC_LITERAL(22, 326, 20), // "shininessSliderValue"
+QT_MOC_LITERAL(23, 347, 9), // "updateEta"
+QT_MOC_LITERAL(24, 357, 14) // "etaSliderValue"
 
     },
     "glShaderWindow\0openSceneFromFile\0\0"
-    "openNewTexture\0openNewEnvMap\0saveScene\0"
-    "toggleFullScreen\0saveScreenshot\0"
+    "openNewTexture\0openSkeletonFromFile\0"
+    "openWeightsForSkeleton\0openNewEnvMap\0"
+    "saveScene\0toggleFullScreen\0saveScreenshot\0"
     "makeAuxWindow\0QWidget*\0setWindowSize\0"
     "size\0setShader\0cookTorranceClicked\0"
     "blinnPhongClicked\0transparentClicked\0"
@@ -75,7 +78,7 @@ static const uint qt_meta_data_glShaderWindow[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-      16,   14, // methods
+      18,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -83,22 +86,24 @@ static const uint qt_meta_data_glShaderWindow[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   94,    2, 0x0a /* Public */,
-       3,    0,   95,    2, 0x0a /* Public */,
-       4,    0,   96,    2, 0x0a /* Public */,
-       5,    0,   97,    2, 0x0a /* Public */,
-       6,    0,   98,    2, 0x0a /* Public */,
-       7,    0,   99,    2, 0x0a /* Public */,
-       8,    0,  100,    2, 0x0a /* Public */,
-      10,    1,  101,    2, 0x0a /* Public */,
-      12,    1,  104,    2, 0x0a /* Public */,
-      13,    0,  107,    2, 0x0a /* Public */,
-      14,    0,  108,    2, 0x0a /* Public */,
-      15,    0,  109,    2, 0x0a /* Public */,
-      16,    0,  110,    2, 0x0a /* Public */,
-      17,    1,  111,    2, 0x0a /* Public */,
-      19,    1,  114,    2, 0x0a /* Public */,
-      21,    1,  117,    2, 0x0a /* Public */,
+       1,    0,  104,    2, 0x0a /* Public */,
+       3,    0,  105,    2, 0x0a /* Public */,
+       4,    0,  106,    2, 0x0a /* Public */,
+       5,    0,  107,    2, 0x0a /* Public */,
+       6,    0,  108,    2, 0x0a /* Public */,
+       7,    0,  109,    2, 0x0a /* Public */,
+       8,    0,  110,    2, 0x0a /* Public */,
+       9,    0,  111,    2, 0x0a /* Public */,
+      10,    0,  112,    2, 0x0a /* Public */,
+      12,    1,  113,    2, 0x0a /* Public */,
+      14,    1,  116,    2, 0x0a /* Public */,
+      15,    0,  119,    2, 0x0a /* Public */,
+      16,    0,  120,    2, 0x0a /* Public */,
+      17,    0,  121,    2, 0x0a /* Public */,
+      18,    0,  122,    2, 0x0a /* Public */,
+      19,    1,  123,    2, 0x0a /* Public */,
+      21,    1,  126,    2, 0x0a /* Public */,
+      23,    1,  129,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void,
@@ -107,16 +112,18 @@ static const uint qt_meta_data_glShaderWindow[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    0x80000000 | 9,
-    QMetaType::Void, QMetaType::QString,   11,
-    QMetaType::Void, QMetaType::QString,   11,
+    QMetaType::Void,
+    QMetaType::Void,
+    0x80000000 | 11,
+    QMetaType::Void, QMetaType::QString,   13,
+    QMetaType::Void, QMetaType::QString,   13,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::Int,   18,
     QMetaType::Void, QMetaType::Int,   20,
     QMetaType::Void, QMetaType::Int,   22,
+    QMetaType::Void, QMetaType::Int,   24,
 
        0        // eod
 };
@@ -129,21 +136,23 @@ void glShaderWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
         switch (_id) {
         case 0: _t->openSceneFromFile(); break;
         case 1: _t->openNewTexture(); break;
-        case 2: _t->openNewEnvMap(); break;
-        case 3: _t->saveScene(); break;
-        case 4: _t->toggleFullScreen(); break;
-        case 5: _t->saveScreenshot(); break;
-        case 6: { QWidget* _r = _t->makeAuxWindow();
+        case 2: _t->openSkeletonFromFile(); break;
+        case 3: _t->openWeightsForSkeleton(); break;
+        case 4: _t->openNewEnvMap(); break;
+        case 5: _t->saveScene(); break;
+        case 6: _t->toggleFullScreen(); break;
+        case 7: _t->saveScreenshot(); break;
+        case 8: { QWidget* _r = _t->makeAuxWindow();
             if (_a[0]) *reinterpret_cast< QWidget**>(_a[0]) = std::move(_r); }  break;
-        case 7: _t->setWindowSize((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 8: _t->setShader((*reinterpret_cast< const QString(*)>(_a[1]))); break;
-        case 9: _t->cookTorranceClicked(); break;
-        case 10: _t->blinnPhongClicked(); break;
-        case 11: _t->transparentClicked(); break;
-        case 12: _t->opaqueClicked(); break;
-        case 13: _t->updateLightIntensity((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 14: _t->updateShininess((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 15: _t->updateEta((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 9: _t->setWindowSize((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        case 10: _t->setShader((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        case 11: _t->cookTorranceClicked(); break;
+        case 12: _t->blinnPhongClicked(); break;
+        case 13: _t->transparentClicked(); break;
+        case 14: _t->opaqueClicked(); break;
+        case 15: _t->updateLightIntensity((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 16: _t->updateShininess((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 17: _t->updateEta((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -178,13 +187,13 @@ int glShaderWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 16)
+        if (_id < 18)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 16;
+        _id -= 18;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 16)
+        if (_id < 18)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 16;
+        _id -= 18;
     }
     return _id;
 }

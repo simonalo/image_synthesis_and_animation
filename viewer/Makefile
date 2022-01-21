@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = myViewer1.0.0
-DISTDIR = /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/.tmp/myViewer1.0.0
+DISTDIR = /user/6/.base/simonalo/home/Documents/Cours/3A/Animation/TP/GPGPU_TP/viewer/.tmp/myViewer1.0.0
 LINK          = g++
 LFLAGS        = -Wno-unknown-pragmas -fopenmp -Wl,-O1
 LIBS          = $(SUBLIBS) -L../trimesh2/lib -ltrimesh /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libGL.so -lpthread   
@@ -54,11 +54,15 @@ OBJECTS_DIR   = ./
 
 SOURCES       = src/main.cpp \
 		src/openglwindow.cpp \
-		src/glshaderwindow.cpp moc_openglwindow.cpp \
+		src/glshaderwindow.cpp \
+		src/joint.cpp \
+		src/weight.cpp moc_openglwindow.cpp \
 		moc_glshaderwindow.cpp
 OBJECTS       = main.o \
 		openglwindow.o \
 		glshaderwindow.o \
+		joint.o \
+		weight.o \
 		moc_openglwindow.o \
 		moc_glshaderwindow.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -127,6 +131,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/moc.prf \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/testlib_defines.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/unix/opengl.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/uic.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/unix/thread.prf \
@@ -138,9 +143,15 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		viewer.pro src/openglwindow.h \
 		src/glshaderwindow.h \
-		src/perlinNoise.h src/main.cpp \
+		src/perlinNoise.h \
+		src/joint.h \
+		src/glshaderwindow-animation.h \
+		src/openglwindow-animation.h \
+		src/weight.h src/main.cpp \
 		src/openglwindow.cpp \
-		src/glshaderwindow.cpp
+		src/glshaderwindow.cpp \
+		src/joint.cpp \
+		src/weight.cpp
 QMAKE_TARGET  = myViewer
 DESTDIR       = 
 TARGET        = myViewer
@@ -218,6 +229,7 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/moc.prf \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/testlib_defines.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/unix/opengl.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/uic.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/unix/thread.prf \
@@ -228,7 +240,7 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		viewer.pro
-	$(QMAKE) -o Makefile viewer.pro
+	$(QMAKE) -o Makefile viewer.pro CONFIG+=myViewer
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf:
@@ -295,6 +307,7 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/moc.prf:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/testlib_defines.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/unix/opengl.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/uic.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/unix/thread.prf:
@@ -306,7 +319,7 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf:
 viewer.pro:
 qmake: FORCE
-	@$(QMAKE) -o Makefile viewer.pro
+	@$(QMAKE) -o Makefile viewer.pro CONFIG+=myViewer
 
 qmake_all: FORCE
 
@@ -320,8 +333,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents src/openglwindow.h src/glshaderwindow.h src/perlinNoise.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/openglwindow.cpp src/glshaderwindow.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents src/openglwindow.h src/glshaderwindow.h src/perlinNoise.h src/joint.h src/glshaderwindow-animation.h src/openglwindow-animation.h src/weight.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/main.cpp src/openglwindow.cpp src/glshaderwindow.cpp src/joint.cpp src/weight.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -358,7 +371,7 @@ compiler_moc_header_clean:
 moc_openglwindow.cpp: src/openglwindow.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/openglwindow.h -o moc_openglwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/viewer -I/user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/openglwindow.h -o moc_openglwindow.cpp
 
 moc_glshaderwindow.cpp: src/glshaderwindow.h \
 		src/openglwindow.h \
@@ -367,9 +380,11 @@ moc_glshaderwindow.cpp: src/glshaderwindow.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
+		src/joint.h \
+		src/weight.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/viewer -I/user/5/.base/mathaiar/home/3A/image_synthesis_and_animation/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/viewer -I/user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -393,7 +408,9 @@ main.o: src/main.cpp src/glshaderwindow.h \
 		../trimesh2/include/Vec.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
-		../trimesh2/include/Color.h
+		../trimesh2/include/Color.h \
+		src/joint.h \
+		src/weight.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o src/main.cpp
 
 openglwindow.o: src/openglwindow.cpp src/openglwindow.h
@@ -406,8 +423,25 @@ glshaderwindow.o: src/glshaderwindow.cpp src/glshaderwindow.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
+		src/joint.h \
+		src/weight.h \
 		src/perlinNoise.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o glshaderwindow.o src/glshaderwindow.cpp
+
+joint.o: src/joint.cpp src/joint.h \
+		../trimesh2/include/Box.h \
+		../trimesh2/include/Vec.h \
+		../trimesh2/include/strutil.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o joint.o src/joint.cpp
+
+weight.o: src/weight.cpp src/weight.h \
+		src/joint.h \
+		../trimesh2/include/Box.h \
+		../trimesh2/include/Vec.h \
+		../trimesh2/include/strutil.h \
+		../trimesh2/include/TriMesh.h \
+		../trimesh2/include/Color.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o weight.o src/weight.cpp
 
 moc_openglwindow.o: moc_openglwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_openglwindow.o moc_openglwindow.cpp
