@@ -381,10 +381,7 @@ moc_glshaderwindow.cpp: src/glshaderwindow.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
 		src/joint.h \
-<<<<<<< HEAD
 		src/weight.h \
-=======
->>>>>>> c81400201bbe9ed17dc9fdc785d9ac8950dbd42f
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/viewer/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/viewer -I/user/6/.base/simonalo/home/Documents/test/Image_Synthesis_Animation-master/trimesh2/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtOpenGL -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include src/glshaderwindow.h -o moc_glshaderwindow.cpp
@@ -412,12 +409,8 @@ main.o: src/main.cpp src/glshaderwindow.h \
 		../trimesh2/include/Box.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
-<<<<<<< HEAD
 		src/joint.h \
 		src/weight.h
-=======
-		src/joint.h
->>>>>>> c81400201bbe9ed17dc9fdc785d9ac8950dbd42f
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o src/main.cpp
 
 openglwindow.o: src/openglwindow.cpp src/openglwindow.h
@@ -431,10 +424,7 @@ glshaderwindow.o: src/glshaderwindow.cpp src/glshaderwindow.h \
 		../trimesh2/include/strutil.h \
 		../trimesh2/include/Color.h \
 		src/joint.h \
-<<<<<<< HEAD
 		src/weight.h \
-=======
->>>>>>> c81400201bbe9ed17dc9fdc785d9ac8950dbd42f
 		src/perlinNoise.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o glshaderwindow.o src/glshaderwindow.cpp
 

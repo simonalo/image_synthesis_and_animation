@@ -31,6 +31,16 @@ void setupFileMenu(QMenuBar* myMenuBar, glShaderWindow* glWindow, QApplication *
     openSceneAction->setStatusTip(myMenuBar->tr("&Opens an existing scene file"));
     glWindow->connect(openSceneAction, SIGNAL(triggered()), glWindow, SLOT(openSceneFromFile()));
     fileMenu->addAction(openSceneAction);
+    // Open a skeleton
+    QAction* openSkeletonAction = new QAction(myMenuBar->tr("&Open Skeleton"), fileMenu);
+    openSkeletonAction->setStatusTip(myMenuBar->tr("&Opens an existing skeleton file"));
+    glWindow->connect(openSkeletonAction, SIGNAL(triggered()), glWindow, SLOT(openSkeletonFromFile()));
+    fileMenu->addAction(openSkeletonAction);
+    // Open a weight file for the skeleton
+    QAction* openWeightsActions = new QAction(myMenuBar->tr("&Open Weights"), fileMenu);
+    openWeightsActions->setStatusTip(myMenuBar->tr("&Opens an existing weights file"));
+    glWindow->connect(openWeightsActions, SIGNAL(triggered()), glWindow, SLOT(openWeightsForSkeleton()));
+    fileMenu->addAction(openWeightsActions);
     // Load new texture
     QAction* openTextureAction = new QAction(myMenuBar->tr("&Load texture"), fileMenu);
     openTextureAction->setStatusTip(myMenuBar->tr("&Opens a new texture image file"));
@@ -123,7 +133,7 @@ int main( int argc, char* argv[] )
 {
     setlocale(LC_ALL,"C");
     QApplication app(argc, argv);
-    QString sceneName = "lemming.ply"; //"lemming.ply";
+    QString sceneName = "skin.off";
     QString textureName = "wildtextures-seamless-wood-planks.jpg";
     QString envMapName = "pisa.png";
     QString skeletonName = "walk1.bvh";

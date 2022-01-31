@@ -31,6 +31,7 @@ public :
 public :
 	std::string name;					// name of dof
 	std::vector<double> _values;		// different keyframes = animation curve
+	int size(){return _values.size(); }
 };
 
 
@@ -39,6 +40,7 @@ enum RotateOrder {roXYZ=0, roYZX, roZXY, roXZY, roYXZ, roZYX};
 class Joint {
 public :
 	static std::vector<string> list_names;
+	static float FRAME_TIME;
 	static int max_id;
 	int id;
 	std::string _name;					// name of joint
@@ -71,8 +73,7 @@ public :
 
 
 	// Create from data :
-	static Joint* create(std::string name, double offX, double offY, double offZ, Joint* parent) {
-		Joint* child = new Joint();
+	static Joint* create(Joint* child, std::string name, double offX, double offY, double offZ, Joint* parent) {
 		child->_name = name;
 		child->_offX = offX;
 		child->_offY = offY;
@@ -96,10 +97,11 @@ public :
 	void animate(int iframe=0);
 
 	static void parseHierarchy(ifstream& file, string& buf);
-	static void parseJoint(ifstream& file, string& buf);
+	static Joint* parseJoint(ifstream& file, string& buf);
 	static void parseOffset(ifstream& file, string& buf, Joint* joint, Joint* parent);
 	static void parseChannels(ifstream& file, string& buf, Joint* joint);
-
+	static void parseMotion(ifstream& file, string& buf, Joint* joint);
+	static void parseFrame(ifstream& file, string& buf, Joint* joint);
 	// Analysis of degrees of freedom :
 	void nbDofs();
 

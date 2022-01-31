@@ -45,8 +45,11 @@
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLPaintDevice>
 #include <QtGui/QPainter>
+
 #include <QDebug>
 #include <time.h>
+
+#include <iostream>
 
 //! [1]
 OpenGLWindow::OpenGLWindow(QWindow *parent)
@@ -78,6 +81,7 @@ void OpenGLWindow::initialize()
 
 void OpenGLWindow::render()
 {
+
     if (!m_device)
         m_device = new QOpenGLPaintDevice;
 
@@ -120,9 +124,25 @@ void OpenGLWindow::exposeEvent(QExposeEvent *event)
 }
 //! [3]
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //! [4]
 void OpenGLWindow::renderNow()
 {
+
+
     if (!isExposed())
         return;
 
@@ -143,7 +163,7 @@ void OpenGLWindow::renderNow()
         initializeOpenGLFunctions();
         initialize();
     }
-
+    
     render();
 
     m_context->swapBuffers(this);
@@ -162,3 +182,9 @@ void OpenGLWindow::setAnimating(bool animating)
         renderLater();
 }
 //! [5]
+
+void OpenGLWindow::toggleAnimating() {
+	m_animating = !m_animating;
+    m_update_pending = false;
+	renderNow();
+}

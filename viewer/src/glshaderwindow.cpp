@@ -24,6 +24,7 @@ glShaderWindow::glShaderWindow(QWindow *parent)
     : OpenGLWindow(parent), modelMesh(0),
       m_program(0), ground_program(0), skeleton_program(0), compute_program(0), shadowMapGenerationProgram(0),
       g_vertices(0), g_normals(0), g_texcoords(0), g_colors(0), g_indices(0),
+      s_vertices(0), s_colors(0), s_indices(0),
       gpgpu_vertices(0), gpgpu_normals(0), gpgpu_texcoords(0), gpgpu_colors(0), gpgpu_indices(0),
       environmentMap(0), texture(0), permTexture(0), pixels(0), mouseButton(Qt::NoButton), auxWidget(0),
       isGPGPU(false), hasComputeShaders(false), blinnPhong(true), transparent(true), eta(1.5), lightIntensity(1.0f), shininess(50.0f), lightDistance(5.0f), groundDistance(0.78),
@@ -39,6 +40,8 @@ glShaderWindow::glShaderWindow(QWindow *parent)
     m_fragShaderSuffix << "*.frag" << "*.fs";
     m_vertShaderSuffix << "*.vert" << "*.vs";
     m_compShaderSuffix << "*.comp" << "*.cs";
+
+    tStart = clock();
 }
 
 glShaderWindow::~glShaderWindow()
@@ -131,56 +134,6 @@ void glShaderWindow::openSceneFromFile() {
     }
 }
 
-void glShaderWindow::openSkeletonFromFile() {
-    QFileDialog dialog(0, "Open BVH file", workingDirectory + "../models/", "*.bvh");
-    dialog.setAcceptMode(QFileDialog::AcceptOpen);
-    QString filename;
-    int ret = dialog.exec();
-    if (ret == QDialog::Accepted) {
-        workingDirectory = dialog.directory().path() + "/";
-        skeletonName = dialog.selectedFiles()[0];
-    }
-
-    if (!skeletonName.isNull())
-    {
-        openSkeleton();
-    }
-}
-
-void glShaderWindow::openWeightsForSkeleton(){
-    QFileDialog dialog(0, "Open weights file for skeleton", workingDirectory+"../models/", "*.txt");
-    dialog.setAcceptMode(QFileDialog::AcceptOpen);
-    QString filename;
-    int ret = dialog.exec();
-    if (ret == QDialog::Accepted) {
-        workingDirectory = dialog.directory().path() + "/";
-        weightsName = dialog.selectedFiles()[0];
-    }
-
-    if (skeleton == NULL){
-        std::cerr << "Input a skeleton before weights" << endl;
-        return;
-    }
-
-    if (!weightsName.isNull())
-    {
-        VerticesWeights.clear();
-        openWeights();
-    }
-}
-
-void glShaderWindow::openWeights(){
-    VerticesWeights.clear();
-    // Weight::createFromFile(weightsName.toStdString(), VerticesWeights);
-    vector<trimesh::point> jointPosition = skeleton->exportMiddleArticulations();
-    Weight::createRigidWeights(modelMesh->vertices, jointPosition, VerticesWeights);
-    std::cerr << "CREATED FROM FILE " << VerticesWeights.size() << endl;
-    vector<QMatrix4x4> offsetMatrices;
-    std::vector<QMatrix4x4> transformMatrices;
-    skeleton->getTransformationMatrices(transformMatrices, offsetMatrices);
-    calculateNewPosition(offsetMatrices, transformMatrices);
-}
-
 void glShaderWindow::openNewTexture() {
     QFileDialog dialog(0, "Open texture image", workingDirectory + "../textures/", "*.png *.PNG *.jpg *.JPG *.tif *.TIF");
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
@@ -235,6 +188,57 @@ void glShaderWindow::openNewEnvMap() {
     }
 }
 
+void glShaderWindow::openSkeletonFromFile() {
+    QFileDialog dialog(0, "Open BVH file of skeleton", workingDirectory+"../models/", "*.bvh");
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    QString filename;
+    int ret = dialog.exec();
+    if (ret == QDialog::Accepted) {
+        workingDirectory = dialog.directory().path() + "/";
+        skeletonName = dialog.selectedFiles()[0];
+    }
+
+    if (!skeletonName.isNull())
+    {
+        openSkeleton();
+    }
+}
+
+void glShaderWindow::openWeightsForSkeleton(){
+    QFileDialog dialog(0, "Open weights file for skeleton", workingDirectory+"../models/", "*.txt");
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    QString filename;
+    int ret = dialog.exec();
+    if (ret == QDialog::Accepted) {
+        workingDirectory = dialog.directory().path() + "/";
+        weightsName = dialog.selectedFiles()[0];
+    }
+
+    if (skeleton == NULL){
+        std::cerr << "Input a skeleton before weights" << endl;
+        return;
+    }
+
+    if (!weightsName.isNull())
+    {
+        VerticesWeights.clear();
+        openWeights();
+    }
+}
+
+void glShaderWindow::openWeights(){
+    VerticesWeights.clear();
+    // Weight::createFromFile(weightsName.toStdString(), VerticesWeights);
+    vector<trimesh::point> jointPosition = skeleton->exportMiddleArticulations();
+    Weight::createRigidWeights(modelMesh->vertices, jointPosition, VerticesWeights);
+    std::cerr << "CREATED FROM FILE " << VerticesWeights.size() << "frame " << FRAME << endl;
+    vector<QMatrix4x4> offsetMatrices;
+    skeleton->animate(FRAME);
+    std::vector<QMatrix4x4> transformMatrices;
+    skeleton->getTransformationMatrices(transformMatrices, offsetMatrices);
+    calculateNewPosition(offsetMatrices, transformMatrices);
+}
+
 void glShaderWindow::cookTorranceClicked()
 {
     blinnPhong = false;
@@ -277,16 +281,23 @@ void glShaderWindow::updateEta(int etaSliderValue)
     renderNow();
 }
 
-void glShaderWindow::fillValuesFromJoints(Joint* current, const vector<trimesh::point>& _vert)
-{
-    s_colors[current->id-1] = trimesh::point(1.0, 1.0, 1.0, 1.0);
-    s_vertices[current->id-1] = _vert[current->id-1];
-    for (int i=0; i<current->_children.size(); i++) {
-        s_indices[s_numIndices++] = current->id-1;
-        s_indices[s_numIndices++] = current->_children[i]->id-1;
-        fillValuesFromJoints(current->_children[i], _vert);
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 QWidget *glShaderWindow::makeAuxWindow()
 {
@@ -324,6 +335,8 @@ QWidget *glShaderWindow::makeAuxWindow()
     groupBox2->setLayout(vbox2);
     buttons->addWidget(groupBox2);
     outer->addLayout(buttons);
+
+
 
     // light source intensity
     QSlider* lightSlider = new QSlider(Qt::Horizontal);
@@ -377,6 +390,60 @@ QWidget *glShaderWindow::makeAuxWindow()
     outer->addLayout(hboxEta);
     outer->addWidget(etaSlider);
 
+    
+    
+    
+
+
+
+
+
+
+
+    
+    
+
+
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     auxWidget->setLayout(outer);
     return auxWidget;
 }
@@ -384,6 +451,7 @@ QWidget *glShaderWindow::makeAuxWindow()
 void glShaderWindow::createSSBO() 
 {
 #ifndef __APPLE__
+    
 	glGenBuffers(4, ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo[0]);
     // TODO: test if 4 float alignment works better
@@ -587,37 +655,29 @@ void glShaderWindow::bindSceneToProgram()
     ground_program->setAttributeBuffer( "texcoords", GL_FLOAT, 0, 2 );
     ground_program->enableAttributeArray( "texcoords" );
     ground_program->release();
-    // Also bind the ground to the shadow mapping program:
-    shadowMapGenerationProgram->bind();
-    ground_vertexBuffer.bind();
-    shadowMapGenerationProgram->setAttributeBuffer( "vertex", GL_FLOAT, 0, 4 );
-    shadowMapGenerationProgram->enableAttributeArray( "vertex" );
-    shadowMapGenerationProgram->release();
-    ground_colorBuffer.bind();
-    shadowMapGenerationProgram->setAttributeBuffer( "color", GL_FLOAT, 0, 4 );
-    shadowMapGenerationProgram->enableAttributeArray( "color" );
-    ground_normalBuffer.bind();
-    shadowMapGenerationProgram->setAttributeBuffer( "normal", GL_FLOAT, 0, 4 );
-    shadowMapGenerationProgram->enableAttributeArray( "normal" );
-    ground_texcoordBuffer.bind();
-    shadowMapGenerationProgram->setAttributeBuffer( "texcoords", GL_FLOAT, 0, 2 );
-    shadowMapGenerationProgram->enableAttributeArray( "texcoords" );
-    ground_program->release();
-    ground_vao.release();
 
     // Bind the skeleton like ground
     skeleton_vao.bind();
     skeleton_vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     skeleton_vertexBuffer.bind();
 
+
     s_numPoints = skeleton->max_id - 1;
+
+
+
 
     s_vertices = new trimesh::point[s_numPoints];
     s_colors = new trimesh::point[s_numPoints];
     s_indices = new int[2*(s_numPoints-1)];
 
     s_numIndices = 0;
+
+    // animation update
+    frame = 0;
+
     QMatrix4x4 transform;
+
     vector<trimesh::point> _vert;
 
     skeleton->exportPositions(transform, _vert);
@@ -644,6 +704,17 @@ void glShaderWindow::bindSceneToProgram()
     skeleton_program->release();
 
     skeleton_vao.release();
+}
+
+void glShaderWindow::fillValuesFromJoints(Joint* current, const vector<trimesh::point>& _vert)
+{
+    s_colors[current->id-1] = trimesh::point(1.0, 1.0, 1.0, 1.0);
+    s_vertices[current->id-1] = _vert[current->id-1];
+    for (int i=0; i<current->_children.size(); i++) {
+        s_indices[s_numIndices++] = current->id-1;
+        s_indices[s_numIndices++] = current->_children[i]->id-1;
+        fillValuesFromJoints(current->_children[i], _vert);
+    }
 }
 
 void glShaderWindow::initializeTransformForScene()
@@ -683,8 +754,17 @@ void glShaderWindow::openScene()
     modelMesh->need_bbox();
     modelMesh->need_normals();
     modelMesh->need_faces();
-    cout << "Open skeleteton" << endl;
+    
     openSkeleton();
+    cout << "Open skeleteton" << endl;
+    openWeights();
+    vector<Weight> weightsVec;
+    vector<trimesh::point> jointPosition = skeleton->exportMiddleArticulations();
+    cerr << "Open weights" << endl;
+    Weight::createRigidWeights(modelMesh->vertices, jointPosition, weightsVec);
+    
+    Weight::writeWeightsToFile(weightsVec);
+    
     m_center = QVector3D(modelMesh->bsphere.center[0],
             modelMesh->bsphere.center[1],
             modelMesh->bsphere.center[2]);
@@ -698,26 +778,24 @@ void glShaderWindow::openScene()
 	if (compute_program) {
         createSSBO();
     }
-
     bindSceneToProgram();
     initializeTransformForScene();
 }
 
 void glShaderWindow::openSkeleton()
 {
-
     if (skeletonName.isNull()) {
         QMessageBox::warning(0, tr("qViewer"),
                              tr("Could not load file ") + modelName, QMessageBox::Ok);
         openSkeletonFromFile();
     }
-
     skeleton = Joint::createFromFile(skeletonName.toStdString());
-    
+
+
+    cout << "Joint good"<<endl;
     bindSceneToProgram();
     initializeTransformForScene();
 }
-
 
 void glShaderWindow::saveScene()
 {
@@ -787,6 +865,7 @@ void glShaderWindow::setShader(const QString& shader)
     QString computeShader;
     isGPGPU = shader.contains("gpgpu", Qt::CaseInsensitive);
     isFullRt = shader.contains("fullrt", Qt::CaseInsensitive);
+
     foreach (const QString &str, shaders) {
         QString suffix = str.right(str.size() - str.lastIndexOf("."));
         if (m_vertShaderSuffix.filter(suffix).size() > 0) {
@@ -810,6 +889,7 @@ void glShaderWindow::setShader(const QString& shader)
         hasComputeShaders = false;
         // TODO: release SSBO
     }
+    
     bindSceneToProgram();
     loadTexturesForShaders();
     renderNow();
@@ -842,8 +922,10 @@ void glShaderWindow::loadTexturesForShaders() {
         delete computeResult;
         computeResult = 0;
     }
+    cout<<ground_program->uniformLocation("colorTexture")<<endl;
 	// Load textures as required by the shader.
-	if ((m_program->uniformLocation("colorTexture") != -1) || (ground_program->uniformLocation("colorTexture") != -1)) {
+	if ((m_program->uniformLocation("colorTexture") != -1) || (ground_program->uniformLocation("colorTexture") != -1) ||
+        ((compute_program != NULL) && (compute_program->uniformLocation("colorTexture") != -1))) {
 		glActiveTexture(GL_TEXTURE0);
         // the shader wants a texture. We load one.
         texture = new QOpenGLTexture(QImage(textureName));
@@ -956,7 +1038,7 @@ void glShaderWindow::initialize()
         delete(m_program);
     }
 	QString shaderPath = workingDirectory + "../shaders/";
-    m_program = prepareShaderProgram(shaderPath + "1_simple.vert", shaderPath + "1_simple.frag");
+    m_program = prepareShaderProgram(shaderPath + "2_phong.vert", shaderPath + "2_phong.frag");
     if (ground_program) {
         ground_program->release();
         delete(ground_program);
@@ -997,9 +1079,9 @@ void glShaderWindow::initialize()
     skeleton_vao.bind();
     skeleton_vertexBuffer.create();
     skeleton_colorBuffer.create();
-    skeleton_normalBuffer.create();
+    //skeleton_normalBuffer.create();
     skeleton_indexBuffer.create();
-    skeleton_texcoordBuffer.create();
+    //skeleton_texcoordBuffer.create();
     skeleton_vao.release();
 
     openScene();
@@ -1179,7 +1261,6 @@ void glShaderWindow::mouseMoveEvent(QMouseEvent *e)
 void glShaderWindow::mouseReleaseEvent(QMouseEvent *e)
 {
     mouseButton = Qt::NoButton;
-
     if (isFullRt){
         // On change le shader : on utilise maintenant le fullrt
         QString shader2 = "gpgpu_fullrt";
@@ -1207,6 +1288,145 @@ static int nextPower2(int x) {
     return x;
 }
 
+void glShaderWindow::keyPressEvent(QKeyEvent* e)
+{
+	int key = e->key();
+	switch (key)
+	{
+	case Qt::Key_Space:
+        toggleAnimating();
+		break;
+	default:
+		break;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void glShaderWindow::changeFrame(int frame){
+    // We can't change the frame while we animate
+    if (getAnimating()){
+        return;
+    }
+    
+    FRAME = frame;
+    renderNow();
+}
 
 
 void glShaderWindow::render()
@@ -1218,7 +1438,28 @@ void glShaderWindow::render()
     QMatrix4x4 mat_inverse = m_matrix[0];
     QMatrix4x4 persp_inverse = m_perspective;
 
+    lightCoordMatrix.setToIdentity();
+    lightPerspective.setToIdentity();
+
+    lightCoordMatrix.lookAt(lightPosition, m_center, QVector3D(0, 1.0, 0));
+    lightPerspective = m_perspective;
+
     if (getAnimating()){
+
+        if (FRAME + 1 >= skeleton->_dofs[0].size()){
+            FRAME = 0;
+            struct timespec start;
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            timeLastFrame = start.tv_sec + start.tv_nsec/1000000000.0;
+        } else {
+            FRAME++;
+        }
+
+
+
+
+        skeleton->animate(FRAME);
+
         std::vector<QMatrix4x4> offsetMatrices;
         std::vector<QMatrix4x4> transformMatrices;
         skeleton->getTransformationMatrices(transformMatrices, offsetMatrices);
@@ -1257,12 +1498,23 @@ void glShaderWindow::render()
         compute_program->setUniformValue("framebuffer", 2);
         compute_program->setUniformValue("colorTexture", 0);
 		glBindImageTexture(2, computeResult->textureId(), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+       
+       
+       
+       
+       
+       
+       
+       
+       
         int worksize_x = nextPower2(width());
         int worksize_y = nextPower2(height());
         glDispatchCompute(worksize_x / compute_groupsize_x, worksize_y / compute_groupsize_y, 1);
         glBindImageTexture(2, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F); 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         compute_program->release();
+
+
 #endif
 	} else if ((ground_program->uniformLocation("shadowMap") != -1) || (m_program->uniformLocation("shadowMap") != -1) ){
 		glActiveTexture(GL_TEXTURE2);
@@ -1276,8 +1528,6 @@ void glShaderWindow::render()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // set up camera position in light source:
         // TODO_shadowMapping: you must initialize these two matrices.
-        lightCoordMatrix.setToIdentity();
-        lightPerspective.setToIdentity();
 
         shadowMapGenerationProgram->setUniformValue("matrix", lightCoordMatrix);
         shadowMapGenerationProgram->setUniformValue("perspective", lightPerspective);
@@ -1309,16 +1559,18 @@ void glShaderWindow::render()
     } else {
         m_program->setUniformValue("matrix", m_matrix[0]);
         m_program->setUniformValue("perspective", m_perspective);
-        m_program->setUniformValue("lightMatrix", m_matrix[1]);
+        m_program->setUniformValue("lightMatrix", lightCoordMatrix);
         m_program->setUniformValue("normalMatrix", m_matrix[0].normalMatrix());
     }
     m_program->setUniformValue("lightPosition", lightPosition);
     m_program->setUniformValue("lightIntensity", 1.0f);
+    m_program->setUniformValue("lightMatrix", lightCoordMatrix);
     m_program->setUniformValue("blinnPhong", blinnPhong);
     m_program->setUniformValue("transparent", transparent);
     m_program->setUniformValue("lightIntensity", lightIntensity);
     m_program->setUniformValue("shininess", shininess);
     m_program->setUniformValue("eta", eta);
+
     m_program->setUniformValue("radius", modelMesh->bsphere.r);
 	if (m_program->uniformLocation("colorTexture") != -1) m_program->setUniformValue("colorTexture", 0);
     if (m_program->uniformLocation("envMap") != -1)  m_program->setUniformValue("envMap", 1);
@@ -1328,6 +1580,8 @@ void glShaderWindow::render()
         m_program->setUniformValue("shadowMap", 2);
         // TODO_shadowMapping: send the right transform here
     }
+
+
 
     m_vao.bind();
     glDrawElements(GL_TRIANGLES, 3 * m_numFaces, GL_UNSIGNED_INT, 0);
@@ -1339,7 +1593,7 @@ void glShaderWindow::render()
         ground_program->bind();
         ground_program->setUniformValue("lightPosition", lightPosition);
         ground_program->setUniformValue("matrix", m_matrix[0]);
-        ground_program->setUniformValue("lightMatrix", m_matrix[1]);
+        ground_program->setUniformValue("lightMatrix", lightCoordMatrix);
         ground_program->setUniformValue("perspective", m_perspective);
         ground_program->setUniformValue("normalMatrix", m_matrix[0].normalMatrix());
         ground_program->setUniformValue("lightIntensity", 1.0f);
@@ -1348,11 +1602,14 @@ void glShaderWindow::render()
         ground_program->setUniformValue("lightIntensity", lightIntensity);
         ground_program->setUniformValue("shininess", shininess);
         ground_program->setUniformValue("eta", eta);
+
         ground_program->setUniformValue("radius", modelMesh->bsphere.r);
 		if (ground_program->uniformLocation("colorTexture") != -1) ground_program->setUniformValue("colorTexture", 0);
         if (ground_program->uniformLocation("shadowMap") != -1) {
             ground_program->setUniformValue("shadowMap", 2);
             // TODO_shadowMapping: send the right transform here
+
+
         }
         ground_vao.bind();
         glDrawElements(GL_TRIANGLES, g_numIndices, GL_UNSIGNED_INT, 0);
@@ -1381,6 +1638,7 @@ void glShaderWindow::render()
     glDrawElements(GL_LINES, s_numIndices, GL_UNSIGNED_INT, 0);
     skeleton_vao.release();
     skeleton_program->release();
+
 }
 
 void glShaderWindow::calculateNewPosition(vector<QMatrix4x4>& transformMatrices, vector<QMatrix4x4>& offsetMatrices){

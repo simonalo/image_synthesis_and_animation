@@ -16,7 +16,7 @@
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QScreen>
 #include <QMouseEvent>
-
+#include <QLabel>
 
 class glShaderWindow : public OpenGLWindow
 {
@@ -33,6 +33,35 @@ public:
     inline const QStringList& fragShaderSuffix() { return m_fragShaderSuffix;};
     inline const QStringList& vertShaderSuffix() { return m_vertShaderSuffix;};
     void calculateNewPosition(vector<QMatrix4x4>& transformMatrices, vector<QMatrix4x4>& offsetMatrix);
+    // Override of parent
+    void renderNow(){
+        if (getAnimating()){
+
+            struct timespec start;
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            double elapsed = start.tv_sec +  - timeLastFrame + (start.tv_nsec) / 1000000000.0;
+
+            if ((int)(elapsed / Joint::FRAME_TIME) <= FRAME){
+                // cerr << "WAITING" << endl;
+
+                renderLater();
+                return;
+            } else if ((int)(elapsed / Joint::FRAME_TIME) > FRAME){
+                frame = (int)(elapsed / Joint::FRAME_TIME);
+            }
+        }
+
+        OpenGLWindow::renderNow();
+
+    }
+    void toggleAnimating(){
+        OpenGLWindow::toggleAnimating();
+        if (getAnimating()){
+            struct timespec start;
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            timeLastFrame = start.tv_sec + start.tv_nsec/1000000000.0 - FRAME * Joint::FRAME_TIME;
+        }
+    }
 
 public slots:
     void openSceneFromFile();
@@ -53,6 +82,7 @@ public slots:
     void updateLightIntensity(int lightSliderValue);
     void updateShininess(int shininessSliderValue);
     void updateEta(int etaSliderValue);
+    void changeFrame(int frame);
 
 protected:
     void mousePressEvent(QMouseEvent *e);
@@ -61,22 +91,12 @@ protected:
     void timerEvent(QTimerEvent *e);
     void resizeEvent(QResizeEvent * ev);
     void wheelEvent(QWheelEvent * ev);
-    void keyPressEvent(QKeyEvent* e)
-    {
-        int key = e->key();
-        switch (key)
-        {
-        case Qt::Key_Space:
-            toggleAnimating();
-            break;
-        default:
-            break;
-        }
-    }
-
+    void keyPressEvent(QKeyEvent* e);
 
 
 private:
+    clock_t tStart;
+
     QOpenGLShaderProgram* prepareShaderProgram(const QString& vertexShaderPath, const QString& fragmentShaderPath);
     QOpenGLShaderProgram* prepareComputeProgram(const QString& computeShaderPath);
     void createSSBO();
@@ -89,6 +109,9 @@ private:
     void openWeights();
     void mouseToTrackball(QVector2D &in, QVector3D &out);
     void fillValuesFromJoints(Joint* current, const vector<trimesh::point>& _vert);
+    QLabel* frameLabelValue; 
+    
+    int FRAME=0;
 
     vector<trimesh::point> initVertices;
 
@@ -120,6 +143,8 @@ private:
     trimesh::point *s_colors;
     trimesh::vec2 *s_texcoords;
     trimesh::vec *s_normals;
+    int frame;
+
     int *s_indices;
     int s_numPoints;
     int s_numIndices;
@@ -143,6 +168,9 @@ private:
     float shininess;
     float lightDistance;
     float groundDistance;
+    int maxBounds;
+
+    QString shaderName;
 
 
     // OpenGL variables encapsulated by Qt

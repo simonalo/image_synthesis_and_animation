@@ -72,11 +72,7 @@ public:
 
     void setAnimating(bool animating);
     bool getAnimating() { return m_animating; }
-    void toggleAnimating() {
-        m_animating = !m_animating;
-        m_update_pending = false;
-        renderNow();
-    }
+    virtual void toggleAnimating();
 
 
 public slots:
@@ -86,6 +82,7 @@ public slots:
 protected:
     bool event(QEvent *event);
     void exposeEvent(QExposeEvent *event);
+    double timeLastFrame=0;
 
 private:
     bool m_update_pending;

@@ -60,7 +60,7 @@ void Weight::writeWeightsToFile(const vector<Weight> &verticesWeights){
 
     ofstream weightsFile;
     weightsFile.open ("viewer/models/new_weights.txt");
-    cerr << "TEST" << endl;
+    // cerr << "TEST" << endl;
 
     weightsFile << "id ";
 

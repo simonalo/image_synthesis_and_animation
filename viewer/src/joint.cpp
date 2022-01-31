@@ -14,10 +14,11 @@ float Joint::FRAME_TIME = 0.0;
 
 Joint* Joint::createFromFile(std::string fileName) {
 	Joint::max_id = 0;
-	Joint* root = NULL;
+	Joint* root = new Joint();
 	cout << "Loading from " << fileName << endl;
 
 	ifstream inputfile(fileName.data());
+	
 	if(inputfile.good()) {
 		while(!inputfile.eof()) {
 			string buf;	
@@ -26,7 +27,7 @@ Joint* Joint::createFromFile(std::string fileName) {
 			Joint::parseHierarchy(inputfile, buf) ;
 			
 			// Parse joints
-			Joint::parseJoint(inputfile, buf);
+			root = Joint::parseJoint(inputfile, buf);
 			
 			// Parse motion
 		}
@@ -87,7 +88,7 @@ void Joint::parseHierarchy(ifstream& file, string& buf) {
 	}
 }
 
-void Joint::parseJoint(ifstream& file, string& buf) {
+Joint* Joint::parseJoint(ifstream& file, string& buf) {
 	// Parse root
 	file >> buf;
 
@@ -108,8 +109,8 @@ void Joint::parseJoint(ifstream& file, string& buf) {
 	// Parse childs
 	Joint* parent;
 	Joint* current = root;
-	
-	while (buf!=kMotion) {
+	bool motion_found = false;
+	while (!motion_found) {
 		file >> buf;
 		if (buf == kJoint) {
 			parent = current;
@@ -125,18 +126,24 @@ void Joint::parseJoint(ifstream& file, string& buf) {
 		}
 		else if (buf == kbrackC) {
 			// We go up in the tree
-			current = current->_parent;
+			if (current->_parent != nullptr)
+			{
+				current = current->_parent;
+				parent = current->_parent;
+			}
 		}
 		else if (buf == kMotion) {
 			// Next part (motion)
-			Joint::parseMotion(file, buf, root)
-			break;
+			Joint::parseMotion(file, buf, root);
+			motion_found = true;
 		}
 		else {
 			cerr << "Error : keyword " << buf << " not handled." << endl;
 			exit (EXIT_FAILURE);
 		}
 	}
+
+	return root;
 }
 
 void Joint::parseOffset(ifstream& file, string& buf, Joint* joint, Joint* parent) {
@@ -160,8 +167,7 @@ void Joint::parseOffset(ifstream& file, string& buf, Joint* joint, Joint* parent
 		cerr << "Error : Can't read values of offset."<<endl;
 		exit (EXIT_FAILURE);
 	}
-
-	joint = Joint::create(name, offset_x, offset_y, offset_z, parent);
+	Joint::create(joint, name, offset_x, offset_y, offset_z, parent);
 }
 
 void Joint::parseChannels(ifstream& file, string& buf, Joint* joint) {
@@ -230,10 +236,12 @@ void Joint::getChildTransformationMatrices(std::vector<QMatrix4x4>& bindedMatric
 
 
 vector<trimesh::point> Joint::exportPositions(){
+
 	if (_parent != NULL){
 		std::cerr << "You can only call this method on root" << endl;
 		return vector<trimesh::point>();
 	}
+
 	vector<trimesh::point> positions;
 	QMatrix4x4 matrix;
 	matrix.translate(_offX, _offY, _offZ); // global offset
@@ -267,6 +275,7 @@ void Joint::exportChildPositions(QMatrix4x4& matriceTransformation, QVector3D& p
 		positions.push_back(currentPosition);
 		_children[i]->exportChildPositions(matriceTransformation, positionRoot, positions);
 	}
+	
 	matriceTransformation.rotate(-_curRz, 0, 0, 1);
 	matriceTransformation.rotate(-_curRy, 0, 1, 0);
 	matriceTransformation.rotate(-_curRx, 1, 0, 0);
@@ -276,17 +285,21 @@ void Joint::exportChildPositions(QMatrix4x4& matriceTransformation, QVector3D& p
 
 void Joint::exportPositions(QMatrix4x4& transform, vector<trimesh::point>& positions)
 {
+	
 	transform.translate(_offX, _offY, _offZ);
+
 	transform.translate(_curTx, _curTy, _curTz);
 	transform.rotate(_curRz, 0, 0, 1);
 	transform.rotate(_curRy, 0, 1, 0);
 	transform.rotate(_curRx, 1, 0, 0);
+
 	QVector3D pos = transform * QVector3D(0, 0, 0);
 	float x = float(pos.x());
 	float y = float(pos.y());
 	float z = float(pos.z());
 	trimesh::point vertex(x, y, z, 1.0);
 	positions.push_back(vertex);
+
 	for (int i=0; i<this->_children.size(); i++) {
 		this->_children[i]->exportPositions(transform, positions);
 	}
@@ -295,6 +308,7 @@ void Joint::exportPositions(QMatrix4x4& transform, vector<trimesh::point>& posit
 	transform.rotate(-_curRz, 0, 0, 1);
 	transform.translate(-_curTx, -_curTy, -_curTz);
 	transform.translate(-_offX, -_offY, -_offZ);
+
 }
 
 vector<trimesh::point> Joint::exportMiddleArticulations(){
@@ -350,10 +364,8 @@ Joint::~Joint() {
 	_dofs.clear();
 	_children.clear();
 }
-}
 
 void Joint::parseMotion(ifstream& file, string& buf, Joint* joint) {
-	file >> buf;
 	if (buf != kMotion) {
 		cerr << "Error : Can't find MOTION keyword." << endl;
 		exit(EXIT_FAILURE);
@@ -391,3 +403,4 @@ void Joint::parseFrame(ifstream& file, string& buf, Joint* current) {
 		Joint::parseFrame(file, buf, *children);
 	}
 }
+
